@@ -16,6 +16,12 @@ func (worker *Worker) RunMap(args *RunArgs, _ *struct{}) error {
 		mapResult []KeyValue
 	)
 
+	if worker.shouldFail(false) {
+		mapResult = make([]KeyValue, 0)
+		storeLocal(worker.task, args.Id, mapResult)
+		panic("Induced failure.")
+	}
+
 	log.Printf("Running map id: %v, path: %v\n", args.Id, args.FilePath)
 
 	if buffer, err = ioutil.ReadFile(args.FilePath); err != nil {
@@ -38,6 +44,14 @@ func (worker *Worker) RunReduce(args *RunArgs, _ *struct{}) error {
 		file         *os.File
 		fileEncoder  *json.Encoder
 	)
+
+	if worker.shouldFail(false) {
+		if file, err = os.Create(resultFileName(args.Id)); err != nil {
+			log.Fatal(err)
+		}
+		file.Close()
+		panic("Induced failure.")
+	}
 
 	data := loadLocal(args.Id)
 

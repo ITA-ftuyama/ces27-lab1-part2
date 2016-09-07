@@ -265,18 +265,16 @@ Essa rotina é executada em uma Goroutine separada (no arquivo mapreduce.go, log
 
 Num ambiente real, existem várias possibilidades, como por exemplo informar ao processo que gerencia a inicialização dos workers o endereço do worker falho, verificar se o worker ainda está vivo (isso pode acontencer no caso de uma falha de rede por exemplo).
 
-No nosso caso, não vamos tentar retomar o workers, mas apenas registrar que ele não está mais disponível.
+No nosso caso, não vamos tentar retomar o processo, mas apenas registrar que ele não está mais disponível.
 
-Tratamento: o worker deve ser removido da lista master.workers quando falhar.
-
-Útil:
-A função deve monitor o canal master.failedWorkerChan. Para isso, é interessante observar o uso da operação **range** em estruturas do tipo channel. https://gobyexample.com/range-over-channels
+**Útil:**  
+A função deve monitorar o canal master.failedWorkerChan. Para isso, é interessante observar o uso da operação **range** em estruturas do tipo channel. https://gobyexample.com/range-over-channels
 
 Para remover elementos em estruturas do tipo map, utilizar a operação **delete**. https://gobyexample.com/maps
 
-Por último, para garantir a sincronia do código, utilizar o mutex master.workersMutex para proteger o acesso à estrutura master.workers. https://gobyexample.com/mutexes
+Por último, para garantir a sincronia da estrutura, utilizar o mutex master.workersMutex para proteger o acesso à estrutura master.workers. https://gobyexample.com/mutexes
 
-Resultado:
+**Resultado:**  
 
 Removendo worker da lista
 > Running Worker.RunMap (ID: '2' File: 'map\map-2' Worker: '0')  
@@ -293,7 +291,9 @@ Mesmo com falhas, os workers são finalizados corretamente:
 
 No código acima, fizemos com que o nosso código terminasse de forma elegante mesmo que workers falhassem. Entretanto, a operação onde ocorreu a falha nunca foi realizada, e por conta disso, o nosso MapReduce está incorreto. Para observar isto, basta tentar localizar os arquivos resultantes da operação que falhou (na pasta *reduce/* em caso de falha de uma operação map e *result/* em caso de reduce).
 
-No código abaixo:
+![0 byte files](doc/0-byte-files.png)
+
+Para começar a entender, no código abaixo:
 
 ```go
 master_scheduler.go
@@ -370,6 +370,22 @@ func (master *Master) runOperation(remoteWorker *RemoteWorker, operation *Operat
     (...)
 }
 ```
+
+É importante observar que o código de runOperation é sempre executado em uma goroutine distinta:
+
+```go
+master_scheduler.go
+func (master *Master) schedule(task *Task, proc string, filePathChan chan string) {
+    (...)
+    for filePath = range filePathChan {
+        (...)
+        go master.runOperation(worker, operation, &wg)
+    }
+    (...)
+}
+```
+
+É então necessário desenvolver uma forma de compartilhar a informação de que uma Operation não foi concluída corretamente com a execução do método schedule (o responsável por alocar as operações nos workers). O canal filePathChan vai retornar todos os arquivos criados pelo splitData apenas uma vez. Esse canal é controlado por um método externo e reutilizá-lo pode causar problemas (por exemplo, ele pode ser encerrado pelo código externo, e ao tentar escrever nele, uma chamada de panic será feita como mostra o código a seguir https://play.golang.org/p/KU7MLrFQSx).
 
 Uma solução completamente funcional pode ser obtida em poucas linhas de código (~12 no total), desde que haja um bom entendimento do funcionamento da concorrência em Go (Goroutines, Channels, WaitGroups, Mutexes).
 

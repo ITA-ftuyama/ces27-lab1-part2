@@ -62,10 +62,6 @@ func (worker *Worker) acceptMultipleConnections() error {
 	for {
 		newConn, err = worker.listener.Accept()
 
-		if worker.shouldFail(false) {
-			panic("Induced failure.")
-		}
-
 		if err == nil {
 			go worker.handleConnection(&newConn)
 		} else {
