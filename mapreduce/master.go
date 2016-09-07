@@ -59,7 +59,7 @@ func (master *Master) acceptMultipleConnections() {
 		newConn net.Conn
 	)
 
-	log.Printf("Accepting connections on %v\n", master.listener.Addr())
+	log.Printf("connections on %v\n", master.listener.Addr())
 
 	for {
 		newConn, err = master.listener.Accept()
