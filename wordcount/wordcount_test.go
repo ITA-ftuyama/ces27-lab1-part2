@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/pauloaguiar/ces27-lab1-part2/mapreduce"
 	"os"
 	"strconv"
 	"testing"
+
+	"../mapreduce"
 )
 
 func createTestFile(t *testing.T, fileName string, content string) int {
