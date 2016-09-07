@@ -59,7 +59,7 @@ func (master *Master) acceptMultipleConnections() {
 		newConn net.Conn
 	)
 
-	log.Printf("Accepting connections on %v\n", master.listener.Addr())
+	log.Printf("connections on %v\n", master.listener.Addr())
 
 	for {
 		newConn, err = master.listener.Accept()
@@ -80,6 +80,18 @@ func (master *Master) handleFailingWorkers() {
 	/////////////////////////
 	// YOUR CODE GOES HERE //
 	/////////////////////////
+	log.Printf("Monitoring possible workers fail")
+	for {
+		// Procura no canal trabalhadores falhos (já os removendo do canal)
+		for failedWorker := range master.failedWorkerChan {
+			master.workersMutex.Lock()
+			log.Printf("Safely closing failed worker connection.")
+			// Remove da lista de trabalhadores
+			delete(master.workers, failedWorker.id)
+			master.totalWorkers--
+			master.workersMutex.Unlock()
+		}
+	}
 }
 
 // Handle a single connection until it's done, then closes it.

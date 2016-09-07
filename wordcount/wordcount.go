@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/pauloaguiar/ces27-lab1-part2/mapreduce"
 	"hash/fnv"
 	"strconv"
 	"strings"
 	"unicode"
+
+	"../mapreduce"
 )
 
 // mapFunc is called for each array of bytes read from the splitted files. For wordcount

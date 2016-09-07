@@ -56,8 +56,12 @@ func (master *Master) runOperation(remoteWorker *RemoteWorker, operation *Operat
 
 	if err != nil {
 		log.Printf("Operation %v '%v' Failed. Error: %v\n", operation.proc, operation.id, err)
-		wg.Done()
+		// Mata o trabalhador que falhou o serviço
 		master.failedWorkerChan <- remoteWorker
+		// Aloca novo trabalhador disponível para continuar tarefa
+		worker := <-master.idleWorkerChan
+		go master.runOperation(worker, operation, wg)
+		log.Printf("New worker is taking care of Operation %v '%v'", operation.proc, operation.id)
 	} else {
 		wg.Done()
 		master.idleWorkerChan <- remoteWorker
