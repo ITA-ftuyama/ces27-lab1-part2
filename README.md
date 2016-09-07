@@ -11,7 +11,7 @@ Nesta segunda parte da prática, temos pronto um processo de MapReduce que já o
 O código já possui funções map, reduce e split, mas caso queira testar a sua implementação referente à primeira parte, basta sobrescrever o código dado.
 
 ### Executando o Código
-Para executar o código, precisamos executar multiplos processos. O primeiro deles são os clientes. Note que o valor de -port deve ser alterado para cada cliente. Neste lab usaremos a port 5000 para o Master e 5001+ para os Workers.
+Para executar o código, precisamos executar múltiplos processos. O primeiro deles são os clientes. Note que o valor de -port deve ser alterado para cada cliente. Neste lab usaremos a port 5000 para o Master e 5001+ para os Workers.
 O segundo é o Master.
 
 Executando Worker (aumentar -port para o worker seguinte):
@@ -130,7 +130,7 @@ wordcount$ go run main.go data.go wordcount.go -mode distributed -type master
 > Running Worker.RunMap (ID: '1' File: 'map\map-1' Worker: '0')  
 > Operation Worker.RunMap '1' Failed. Error: read tcp 127.0.0.1:58204->127.0.0.1:5001: wsarecv: An existing connection was forcibly closed by the remote host.  
 
-Note que a execução vai ficar travada. Para entender melhor vamos olhar o seguintes trechos de código:
+Note que a execução vai ficar travada. Para entender melhor vamos olhar os seguintes trechos de código:
 
 ```go
 // master.go
@@ -170,12 +170,12 @@ func (master *Master) Register(args *RegisterArgs, reply *RegisterReply) error {
 
 Observe que quando um novo Worker se registra no Master, ele adiciona esse worker na lista **master.workers**. Para evitar problemas de sincronia no acesso dessa estrutura usamos o mutex **master.workersMutex**.
 
-O ponto mais interessante entretanto, é a última linha:
+O ponto mais interessante, entretanto, é a última linha:
 ```go
 master.idleWorkerChan <- newWorker
 ```
 
-Nessa linha, o worker que acabou de se registrado é colocado no canal de Workers disponíveis. A saída desse canal está em:
+Nessa linha, o worker que acabou de ser registrado é colocado no canal de Workers disponíveis. A saída desse canal está em:
 
 ```go
 // master_scheduler.go
@@ -263,7 +263,7 @@ func (master *Master) handleFailingWorkers() {
 
 Essa rotina é executada em uma Goroutine separada (no arquivo mapreduce.go, logo abaixo de go master.acceptMultipleConnections()). Você deve alterá-la de forma que toda vez que um worker falhar durante uma operação, ele seja corretamente tratado.
 
-Num ambiente real, existem várias possibilidades, como por exemplo informar ao processo que gerencia a inicialização dos workers o endereço do worker falho, verificar se o worker ainda está vivo (isso pode acontencer no caso de uma falha de rede por exemplo).
+Num ambiente real, existem várias possibilidades, como por exemplo informar ao processo que gerencia a inicialização dos workers o endereço do worker falho, verificar se o worker ainda está vivo (isso pode acontecer no caso de uma falha de rede por exemplo).
 
 No nosso caso, não vamos tentar retomar o processo, mas apenas registrar que ele não está mais disponível.
 
@@ -317,7 +317,7 @@ func (master *Master) schedule(task *Task, proc string, filePathChan chan string
 ```
 
 Temos a seguinte lógica:
-O nome dos arquivos que devem ser processados são obtidos através de uma leitura em um canal (filePath = range filePathChan). Em seguida, uma operação é criada e um worker é obtido através do canal master.idleWorkerChan. Em seguida, 1 delta é adicionado ao WaitGroup **wg** e uma nova goroutine é executada com a chamada de runOperation.
+Os nomes dos arquivos que devem ser processados são obtidos através de uma leitura em um canal (filePath = range filePathChan). Em seguida, uma operação é criada e um worker é obtido através do canal master.idleWorkerChan. Em seguida, 1 delta é adicionado ao WaitGroup **wg** e uma nova goroutine é executada com a chamada de runOperation.
 
 WaitGroup é um mecanismo de sincronização de um número variável de goroutines. Neste caso, toda vez que uma operação é executada em uma nova goroutine, adicionamos 1 contador no WaitGroup. Desta forma, na linha wg.Wait() o código vai ficar bloqueado até que n goroutines tenham chamado wg.Done(), onde n é o total de deltas adicionado ao WaitGroup.
 
@@ -398,7 +398,7 @@ wordcount$ go run main.go data.go wordcount.go -mode distributed -type master -f
 
 Conectando pelo menos um worker a este Master, a operação deve ser concluída desde que este único worker não falhe. Para testar a execução com falhas, basta executar um Worker com -fail e após a falha executar um outro worker normal. A saída não deve mudar.
 
-A saída final deve estar em result/result-final. A ordem pode variar (essa aqui está em ordem alfabetica)
+A saída final deve estar em result/result-final. A ordem pode variar (essa aqui está em ordem alfabética)
 
 > {"Key":"a","Value":"2"}  
 > {"Key":"apenas","Value":"1"}  
