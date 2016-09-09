@@ -88,7 +88,6 @@ func (master *Master) handleFailingWorkers() {
 			log.Printf("Safely closing failed worker connection.")
 			// Remove da lista de trabalhadores
 			delete(master.workers, failedWorker.id)
-			master.totalWorkers--
 			master.workersMutex.Unlock()
 		}
 	}
